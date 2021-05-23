@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Deployer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="11.6" xsi:noNamespaceSchemaLocation="schemas/deployer-conf.xsd">
+
+    <!-- Binary Storage configuration -->
+    <BinaryStorage Id="PackageStorage" Adapter="FileSystem">
+        <Property Name="Path" Value="BINARY_PATH"/>
+    </BinaryStorage>
+
+    <!--
+        Redis Binary Storage configuration.
+        Password is not supported by Amazon ElastiCache.
+     -->
+    <!--
+    <BinaryStorage Id="RedisStorage" Adapter="RedisBlobStorage">
+        <Property Name="Host" Value="${storageHost}"/>
+        <Property Name="Port" Value="${storagePort}"/>
+        <Property Name="Password" Value="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+        <Property Name="Timeout" Value="20000"/>
+    </BinaryStorage>
+    -->
+
+    <!-- State store configuration -->
+
+    <!--
+        Configuration example for MSSQL Database
+           The Storage element specifies database settings for Deployer State Store Database.
+           For the MSSQL the minimum set of properties are:
+               host: name of the server that hosts the database
+               port: port number (default 1433) used for TCP/IP connections to the database
+               database: name of the database to access
+               user: username used to access the database
+               password: password used to access the database
+
+           (Optional)
+           Also, for MSSQL we support extended connection properties that are related to MSSQL.
+           For example:
+           <Property Name="encrypt" Value="true"/>
+
+           In this particular case, MSSQL will specify SSL encryption for all the data sent between
+           the client and the server if the server has a certificate installed.
+           You are able to specify as much extended properties as you want.
+
+    <State>
+        <Storage Adapter="mssql" driver="com.microsoft.sqlserver.jdbc.SQLServerDriver" >
+            <Property Name="host" Value="${dbhost}"/>
+            <Property Name="port" Value="1433"/>
+            <Property Name="database" Value="${dbname}"/>
+            <Property Name="user" Value="${dbuser}"/>
+            <Property Name="password" Value="${dbpassword:-*HIDDEN*}"/>
+        </Storage>
+    </State>
+
+    -->
+
+    <!--
+        Configuration example for Oracle SQL Database
+           The Storage element specifies database settings for Deployer State Store Database.
+           For the Oracle SQL the minimum set of properties are:
+               host: name of the server that hosts the database
+               port: port number (default 1521) used for TCP/IP connections to the database
+               database: name of the database to access (SID name)
+               serviceName: service name of the database (Service name - should be commented if you use SID)
+               user: username used to access the database
+               password: password used to access the database
+
+           Currently, we are not supporting extended connection properties for Oracle SQL Database.
+
+    <State>
+        <Storage Adapter="oracle" driver="oracle.jdbc.driver.OracleDriver">
+            <Property Name="host" Value="${dbhost}"/>
+            <Property Name="port" Value="1521"/>
+            <Property Name="serviceName" Value="${dbservicename}"/>
+            <Property Name="database" Value="${dbname}"/>
+            <Property Name="user" Value="${dbuser}"/>
+            <Property Name="password" Value="${dbpassword:-*HIDDEN*}"/>
+        </Storage>
+    </State>
+
+    -->
+
+    <State>
+        <Storage Adapter="mssql" driver="com.microsoft.sqlserver.jdbc.SQLServerDriver">
+            <Property Name="host" Value="DEPLOYER_STATE_DEFAULT_SERVER_NAME"/>
+            <Property Name="port" Value="DEPLOYER_STATE_DEFAULT_PORT_NUMBER"/>
+            <Property Name="database" Value="DEPLOYER_STATE_DEFAULT_DATABASE_NAME"/>
+            <Property Name="user" Value="DEPLOYER_STATE_DEFAULT_USER"/>
+            <Property Name="password" Value="DEPLOYER_STATE_DEFAULT_PASSWORD"/>
+        </Storage>
+    </State>
+
+    <!-- Queues configuration -->
+    <Queues>
+        <!--
+            Queues default configuration for Filesystem.
+            Properties:
+                Destination: folder path to store queue messages.
+                Workers: optional property to set number of workers.
+        -->
+        <Queue Default="true" Verbs="IshPrepare, IshProcess, IshUpdate" Adapter="FileSystem"
+               Id="${commonqueuename:-CommonQueue}">
+            <Property Name="Destination" Value="QUEUE_PATH/CommonQueue"/>
+            <!-- <Property Name="Workers" Value="10"/> -->
+        </Queue>
+
+        <!-- Queues default adapter configuration for FileSystem -->
+        <Adapter Id="FileSystem"/>
+
+        <!--
+            Queues default configuration for JMS.
+            Properties:
+                Workers: optional property to set number of workers.
+        -->
+        <!--
+            <Queue Default="true" Verbs="IshPrepare, IshProcess, IshUpdate" Adapter="JMS" Id="CommonQueue">
+                <Property Name="Workers" Value="10"/>
+            </Queue>
+        -->
+
+        <!--
+            ActiveMQ default adapter configuration for JMS.
+            Properties:
+                JMSConnectionFactoryBuilderClass: class to create ActiveMQ connection factory.
+                JMSUri: ActiveMQ URL.
+                Username and Password: required for remote ActiveMQ connection.
+        -->
+        <!--
+            <Adapter Id="JMS">
+                <Property Name="JMSConnectionFactoryBuilderClass"
+                          Value="com.sdl.delivery.spring.configuration.jms.ActiveMQConnectionFactoryBuilder" />
+                <Property Name="JMSUri" Value="${queueurl:-tcp://activemq-host:port}" />
+
+                <Property Name="Username" Value="admin"/>
+                <Property Name="Password" Value="admin"/>
+            </Adapter>
+        -->
+
+        <!-- Workers configuration properties -->
+        <Workers>
+            <!-- Optional configuration properties
+            <Property Name="QueuePollingInterval" Value="2s"/>
+            <Property Name="RetriesInterval" Value="100ms"/>
+            <Property Name="MaxRetries" Value="10"/>
+            <Property Name="Cleanup" Value="true"/> -->
+        </Workers>
+    </Queues>
+
+</Deployer>

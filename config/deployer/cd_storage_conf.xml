@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration Version="11.6" xsi:noNamespaceSchemaLocation="schemas/cd_storage_conf.xsd"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchemainstance">
+    <ConfigRepository ServiceUri="DISCOVERY_SERVICE_URL"
+                      ConnectionTimeout="10000"
+                      CacheEnabled="true"
+                      CacheExpirationDuration="600"
+                      ServiceMonitorPollDuration="10"
+                      ClientId="registration"
+                      ClientSecret="${registrationpassword:-encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY=}"
+                      TokenServiceUrl="TOKEN_SERVICE_CAPABILITY_URL">
+        <Roles>
+            <Role Name="DeployerCapability" Url="DEPLOYER_SERVICE_CAPABILITY_URL">
+                <Property Name="encoding" Value="UTF-8"/>
+            </Role>
+        </Roles>
+    </ConfigRepository>
+</Configuration>

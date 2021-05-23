@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration Version="11.6"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="schemas/cd_storage_conf.xsd">
+    <!--Optional:-->
+    <!--
+        Default Namespace Configuration
+        The parameter to determine the default namespace
+        'tcm' - Tridion Sites
+    -->
+    <Namespace default="NAMESPACE_PREFIX"/>
+
+    <Global>
+        <Storages>
+            <Storage Type="persistence" Id="defaultdb" dialect="MSSQL"
+                     Class="com.tridion.storage.persistence.JPADAOFactory">
+                <Pool Type="jdbc" Size="15" MonitorInterval="60" IdleTimeout="120" CheckoutTimeout="120"
+                      AcquireRetryAttempts="1"/>
+                <DataSource Class="com.microsoft.sqlserver.jdbc.SQLServerDataSource">
+                    <Property Name="serverName" Value="CONTENT_DEFAULT_SERVER_NAME"/>
+                    <Property Name="portNumber" Value="CONTENT_DEFAULT_PORT_NUMBER"/>
+                    <Property Name="databaseName" Value="CONTENT_DEFAULT_DATABASE_NAME"/>
+                    <Property Name="user" Value="CONTENT_DEFAULT_USER"/>
+                    <Property Name="password" Value="CONTENT_DEFAULT_PASSWORD"/>
+                </DataSource>
+            </Storage>
+        </Storages>
+    </Global>
+
+    <ItemTypes defaultStorageId="defaultdb" cached="false"/>
+
+    <ConfigRepository ServiceUri="DISCOVERY_SERVICE_URL"
+                      ConnectionTimeout="10000"
+                      CacheEnabled="${configcacheenabled:-true}"
+                      CacheExpirationDuration="600"
+                      ServiceMonitorPollDuration="${servicemonitorpollduration:-10}"
+                      ClientId="registration"
+                      ClientSecret="${registrationpassword:-encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY=}"
+                      TokenServiceUrl="TOKEN_SERVICE_CAPABILITY_URL">
+        <Roles>
+            <Role Name="ContentServiceCapability" Url="CONTENT_SERVICE_CAPABILITY_URL"/>
+        </Roles>
+    </ConfigRepository>
+</Configuration>

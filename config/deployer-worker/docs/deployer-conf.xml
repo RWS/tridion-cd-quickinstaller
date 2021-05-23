@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Deployer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="11.6"
+          xsi:noNamespaceSchemaLocation="schemas/deployer-conf.xsd">
+
+    <Pipelines>
+        <Pipeline Id="Bootstrap-StartTransaction" Action="IshPublish,IshUnPublish" Verb="IshPrepare">
+            <Steps>
+                <Step Id="IshUnzipStep"/>
+                <Step Id="IshStartTransactionStep"/>
+            </Steps>
+        </Pipeline>
+        <Pipeline Id="Ish-Process" Action="IshPublish" Verb="IshProcess">
+            <Steps>
+                <Step Id="IshPublicationDeployStep"/>
+                <Step Id="IshPublicationMappingRegistrationStep">
+                    <RetryPoint PipelineId="Ish-Process" StepId="IshPublicationMappingRegistrationStep"/>
+                </Step>
+                <Step Id="IshTOCDeployStep"/>
+                <Step Id="IshIndexDeployStep"/>
+                <Step Id="IshComponentDeployStep"/>
+                <Step Id="IshPageDeployStep"/>
+                <Step Id="IshBinaryDeployStep"/>
+                <Step Id="IshSearchIndexDeployStep">
+                    <BinaryIndexing extensions="${binaryextension:-pdf,doc,docx,xls,xlsx,ppt,pptx,odt}"/>
+                    <!--
+                         If set to true and a fatal indexing error (which is defined as a fatal exception causing none
+                         of the items being able to be indexed) occurs, the entire transaction will
+                         be aborted. If set to false, the deployment and overall transactions of the previous steps
+                         will go through normally.
+                    -->
+                    <Transaction
+                            failPipelineTransactionOnFatalIndexingError="${failtransactiononfatalindexingerror:-true}"/>
+                    <RetryPoint PipelineId="Ish-Process" StepId="IshSearchIndexDeployStep"/>
+                </Step>
+            </Steps>
+        </Pipeline>
+        <Pipeline Id="Ish-PublicationUpdate" Action="IshPublish" Verb="IshUpdate">
+            <Steps>
+                <Step Id="IshPublicationDeployStep"/>
+                <Step Id="IshPublicationMappingRegistrationStep">
+                    <RetryPoint PipelineId="Ish-PublicationUpdate" StepId="IshPublicationMappingRegistrationStep"/>
+                </Step>
+                <Step Id="IshSearchIndexPublicationMetaStep">
+                    <!--
+                         If set to true and a fatal indexing error (which is defined as a fatal exception causing none
+                         of the items being able to be indexed) occurs, the entire transaction will
+                         be aborted. If set to false, the deployment and overall transactions of the previous steps
+                         will go through normally.
+                    -->
+                    <Transaction
+                            failPipelineTransactionOnFatalIndexingError="${failtransactiononfatalindexingerror:-true}"/>
+                    <RetryPoint PipelineId="Ish-PublicationUpdate" StepId="IshSearchIndexPublicationMetaStep"/>
+                </Step>
+            </Steps>
+        </Pipeline>
+        <Pipeline Id="Ish-Process-UnPublish" Action="IshUnPublish" Verb="IshProcess">
+            <Steps>
+                <Step Id="IshPublicationAllRelatedItemsUndeployStep"/>
+                <Step Id="IshIndexUndeployStep">
+                    <!--
+                             There are 3 scenarios for deletion from ES:
+                             - All delete operations finished successfully.
+                               This means response is OK and no conflicts/failures occurred. Deleted documents could be 0 or more.
+                               In this case we successfully finish execution and commit transaction.
+                             - All delete operations failed.
+                               This means that operation response code is other then 200 or there were conflicts/failures on ES but not any document was deleted.
+                               In this case exception is thrown and retry mechanism steps in.
+                               If after all retries we still have failures and did not delete any documents - we rollback transaction and fail execution.
+                             - Some documents were deleted but we have conflicts/failures.
+                               In this case exception is thrown and retry mechanism steps in.
+                               If after all retries we still have failures - we commit transaction (because we already deleted some documents) and fail execution.
+                        -->
+                    <RetryPoint PipelineId="Ish-Process-UnPublish" StepId="IshIndexUndeployStep"/>
+                </Step>
+            </Steps>
+        </Pipeline>
+        <Pipeline Finalize="true" Id="Ish-CloseTransaction-Cleanup" Action="IshPublish,IshUnPublish" Verb="*">
+            <Steps>
+                <Step Id="IshCloseTransactionCleanupStep"/>
+            </Steps>
+        </Pipeline>
+    </Pipelines>
+
+
+    <!-- Binary Storage configuration -->
+    <BinaryStorage Id="PackageStorage" Adapter="FileSystem">
+        <Property Name="Path" Value="${binaryPath}"/>
+    </BinaryStorage>
+
+    <!--
+        Redis Binary Storage configuration.
+        Password is not supported by Amazon ElastiCache.
+     -->
+    <!--
+    <BinaryStorage Id="RedisStorage" Adapter="RedisBlobStorage">
+        <Property Name="Host" Value="${storageHost}"/>
+        <Property Name="Port" Value="${storagePort}"/>
+        <Property Name="Password" Value="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+        <Property Name="Timeout" Value="20000"/>
+    </BinaryStorage>
+    -->
+
+    <!-- State store configuration -->
+
+    <!--
+        Configuration example for MSSQL Database
+           The Storage element specifies database settings for Deployer State Store Database.
+           For the MSSQL the minimum set of properties are:
+               host: name of the server that hosts the database
+               port: port number (default 1433) used for TCP/IP connections to the database
+               database: name of the database to access
+               user: username used to access the database
+               password: password used to access the database
+
+           (Optional)
+           Also, for MSSQL we support extended connection properties that are related to MSSQL.
+           For example:
+           <Property Name="encrypt" Value="true"/>
+
+           In this particular case, MSSQL will specify SSL encryption for all the data sent between
+           the client and the server if the server has a certificate installed.
+           You are able to specify as much extended properties as you want.
+
+    <State>
+        <Storage Adapter="mssql" driver="com.microsoft.sqlserver.jdbc.SQLServerDriver" >
+            <Property Name="host" Value="${dbhost}"/>
+            <Property Name="port" Value="1433"/>
+            <Property Name="database" Value="${dbname}"/>
+            <Property Name="user" Value="${dbuser}"/>
+            <Property Name="password" Value="${dbpassword:-*HIDDEN*}"/>
+        </Storage>
+    </State>
+
+    -->
+
+    <!--
+        Configuration example for Oracle SQL Database
+           The Storage element specifies database settings for Deployer State Store Database.
+           For the Oracle SQL the minimum set of properties are:
+               host: name of the server that hosts the database
+               port: port number (default 1521) used for TCP/IP connections to the database
+               database: name of the database to access (SID name)
+               serviceName: service name of the database (Service name - should be commented if you use SID)
+               user: username used to access the database
+               password: password used to access the database
+
+           Currently, we are not supporting extended connection properties for Oracle SQL Database.
+
+    <State>
+        <Storage Adapter="oracle" driver="oracle.jdbc.driver.OracleDriver">
+            <Property Name="host" Value="${dbhost}"/>
+            <Property Name="port" Value="1521"/>
+            <Property Name="serviceName" Value="${dbservicename}"/>
+            <Property Name="database" Value="${dbname}"/>
+            <Property Name="user" Value="${dbuser}"/>
+            <Property Name="password" Value="${dbpassword:-*HIDDEN*}"/>
+        </Storage>
+    </State>
+
+    -->
+
+    <State>
+        <Storage Adapter="mssql" driver="com.microsoft.sqlserver.jdbc.SQLServerDriver">
+            <Property Name="host" Value="DEPLOYER_STATE_DEFAULT_SERVER_NAME"/>
+            <Property Name="port" Value="DEPLOYER_STATE_DEFAULT_PORT_NUMBER"/>
+            <Property Name="database" Value="DEPLOYER_STATE_DEFAULT_DATABASE_NAME"/>
+            <Property Name="user" Value="DEPLOYER_STATE_DEFAULT_USER"/>
+            <Property Name="password" Value="DEPLOYER_STATE_DEFAULT_PASSWORD"/>
+        </Storage>
+    </State>
+
+    <!-- Queues configuration -->
+    <Queues>
+        <!--
+            Queues default configuration for Filesystem.
+            Properties:
+                Destination: folder path to store queue messages.
+                Workers: optional property to set number of workers.
+        -->
+        <Queue Default="true" Verbs="IshPrepare, IshProcess, IshUpdate" Adapter="FileSystem"
+               Id="${commonqueuename:-CommonQueue}">
+            <Property Name="Destination" Value="QUEUE_PATH/CommonQueue"/>
+            <!-- <Property Name="Workers" Value="10"/> -->
+        </Queue>
+
+        <!--
+            Queues default adapter configuration for FileSystem.
+            Properties:
+                LocationPollingInterval: optional property to set polling interval
+         -->
+        <Adapter Id="FileSystem">
+            <!-- <Property Name="LocationPollingInterval" Value="2s"/> -->
+        </Adapter>
+
+        <!-- Queues default configuration for JMS -->
+        <!--
+            <Queue Default="true" Verbs="IshPrepare, IshProcess, IshUpdate" Adapter="JMS" Id="CommonQueue">
+                <Property Name="Workers" Value="11"/>
+            </Queue>
+        -->
+
+        <!--
+            ActiveMQ default adapter configuration for JMS.
+            Properties:
+                JMSConnectionFactoryBuilderClass: class to create ActiveMQ connection factory.
+                JMSUri: ActiveMQ URL.
+                Username and Password: required for remote ActiveMQ connection.
+                ReceiveTimeout: optional property to fine tune queue sensitivity. Put the value in milliseconds.
+                PoolingRestartDelay: optional property to set a polling restart delay if monitoring was failed.
+        -->
+        <!--
+            <Adapter Id="JMS">
+                <Property Name="JMSConnectionFactoryBuilderClass"
+                          Value="com.sdl.delivery.spring.configuration.jms.ActiveMQConnectionFactoryBuilder" />
+                <Property Name="JMSUri" Value="${queueurl:-tcp://activemq-host:port}" />
+
+                <Property Name="Username" Value="admin"/>
+                <Property Name="Password" Value="admin"/>
+                <Property Name="ReceiveTimeout" Value="200"/>
+                <Property Name="PoolingRestartDelay" Value="5m"/>
+            </Adapter>
+        -->
+
+        <!-- Workers configuration properties -->
+        <Workers>
+            <!-- Optional configuration properties
+            <Property Name="QueuePollingInterval" Value="2s"/>
+            <Property Name="RetriesInterval" Value="100ms"/>
+            <Property Name="MaxRetries" Value="11"/>
+            <Property Name="Cleanup" Value="true"/> -->
+        </Workers>
+    </Queues>
+</Deployer>

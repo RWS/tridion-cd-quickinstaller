@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MonitoringAgentConfiguration Version="11.6"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../schemas/cd_monitor_conf.xsd">
+
+    <StartupPeriod StartupValue="60s"/>
+
+    <HeartbeatMonitoring ListenerPort="20131" EnableRemoteHeartbeats="true">
+        <AutomaticServiceRegistration RegistrationFile="RegisteredServices.xml"/>
+        <Services>
+            <Service ServiceType="TransportService" TimeoutValue="10m"/>
+            <!--<Service ServiceType="Publisher" TimeoutValue="10m"/>
+            <Service ServiceType="WorkflowAgent" TimeoutValue="20m"/>
+            <Service ServiceType="OEMailer" TimeoutValue="10m"/>
+            <Service ServiceType="OESynchronizer" TimeoutValue="10m"/>
+            <Service ServiceType="OEBounceProcessor" TimeoutValue="10m"/>
+            <Service ServiceType="OEQueueTriggeredMailings" TimeoutValue="10m"/>
+            <Service ServiceType="OECollectTracking" TimeoutValue="10m"/>-->
+        </Services>
+    </HeartbeatMonitoring>
+
+    <ServiceHealthMonitorBindings>
+        <ServiceHealthMonitorBinding Name="HttpServiceHealthMonitor" Class="com.tridion.monitor.polling.HTTPHealthMonitor"/>
+        <ServiceHealthMonitorBinding Name="JSONPostServiceHealthMonitor" Class="com.tridion.monitor.polling.JSONPostHealthMonitor"/>
+        <ServiceHealthMonitorBinding Name="XmlHttpServiceHealthMonitor" Class="com.tridion.monitor.polling.XMLHTTPHealthMonitor"/>
+        <ServiceHealthMonitorBinding Name="RmiServiceHealthMonitor" Class="com.tridion.monitor.polling.RMIHealthMonitor"/>
+        <ServiceHealthMonitorBinding Name="JmsServiceHealthMonitor" Class="com.tridion.monitor.polling.JMSHealthMonitor"/>
+        <ServiceHealthMonitorBinding Name="WebDAVServiceHealthMonitor" Class="com.tridion.monitor.polling.WebDAVHealthMonitor"/>
+    </ServiceHealthMonitorBindings>
+
+    <ServiceHealthMonitors>
+        <!-- Example of configuration for polling of IIS. Note that if using SSO, custom headers (which depend on 
+        the SSO product used) can be specified. -->
+        <!--
+        <HttpServiceHealthMonitor ServiceType="IIS" ServiceInstance="local" PollInterval="5m" TimeoutInterval="30s">
+            <Request URL="http://localhost/index.html"/>
+            <Header Name="CustomHeader1" Value="CustomValue1"/>
+            <Header Name="CustomHeader2" Value="CustomValue2"/>
+            <Authentication Scheme="Basic" Username="admin" Password="admin"/>
+            <Response SuccessPattern="Welcome"/>
+        </HttpServiceHealthMonitor>
+        -->
+
+        <!-- Configuration example for ContentManagerKernel monitoring. Note that if using SSO, custom headers 
+        (which depend on the SSO product used) can be specified. -->
+        <!-- 
+        <XmlHttpServiceHealthMonitor ServiceType="ContentManagerKernel" PollInterval="10m" TimeoutInterval="30s">
+              <Request URL="http://localhost/webservices/CoreService2012.svc/basicHttp" SOAPAction="http://www.sdl.com/ContentManager/CoreService/2012/ICoreService/GetCurrentUser"/>
+              <Authentication Scheme="NTLM" Domain="domain" Username="user" Password="password"/>
+        </XmlHttpServiceHealthMonitor> 
+        -->
+
+        <!--
+        <XmlHttpServiceHealthMonitor ServiceType="WorkFlowListener" PollInterval="20m" TimeoutInterval="30s">
+            <Request URL="http://localhost/WFListener/WFListener.asmx"/>
+            &lt;!&ndash;<Header Name="CustomHeader" Value="CustomValue"/>&ndash;&gt;
+            &lt;!&ndash;<Authentication Scheme="Basic" Username="user" Password="pass"/>&ndash;&gt;
+        </XmlHttpServiceHealthMonitor>
+
+        <JSONPostServiceHealthMonitor ServiceType="WebGUI" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="http://localhost/WebUI/Models/TCM54/Services/General.svc/GetUserSettings"/>
+            <Header Name="X-SDL-Tridion-Token" Value="1"/>
+            <Authentication Scheme="NTLM" Domain="domain" Username="user" Password="password"/>
+            &lt;!&ndash; Uncomment the Authorization tag if the GUI has the Tridion.Web.UI.Core.Http.AntiCsrfModule module enabled.
+            <Authorization Scheme="AntiCSRF"/>
+            &ndash;&gt;
+            <Response SuccessPattern="UserSettings"/>
+        </JSONPostServiceHealthMonitor>
+        -->
+
+        <!-- 
+            Example configuration for polling of Business Connector 
+            
+        <XmlHttpServiceHealthMonitor ServiceType="BusinessConnector" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="http://localhost/BCListener/BusinessConnectorService.asmx"/>
+            <Authentication Scheme="NTLM" Host="host" Domain="domain" Username="username" Password="password"/>
+        </XmlHttpServiceHealthMonitor>
+        -->
+
+        <!--
+            Example configuration for monitoring the Content Service
+            Note that the Authorization tag should be commented out if no OAuth2 authorization is used.
+        -->
+        <HttpServiceHealthMonitor ServiceType="ContentService" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="CONTENT_SERVICE_MONITORING_URL" RequestData=""/>
+            <Authorization Scheme="OAuth2" Endpoint="TOKEN_SERVICE_CAPABILITY_URL" ClientId="registration"
+                           ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+            <Response SuccessPattern="content.svc"/>
+        </HttpServiceHealthMonitor>
+
+
+        <!--
+            Example configuration for monitoring the Discovery Service
+            Note that the Authorization tag should be commented out if no OAuth2 authorization is used.
+        -->
+        <HttpServiceHealthMonitor ServiceType="DiscoveryService" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="DISCOVERY_SERVICE_MONITORING_URL" RequestData=""/>
+            <Authorization Scheme="OAuth2" Endpoint="TOKEN_SERVICE_CAPABILITY_URL" ClientId="registration"
+                           ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+            <Response SuccessPattern="discovery.svc"/>
+        </HttpServiceHealthMonitor>
+
+
+        <!--
+           Example configuration for monitoring the Session Preview Service
+           Note that the Authorization tag should be commented out if no OAuth2 authorization is used.
+           The X-Preview-Session-Token header is used to make sure that a request to the session database is generated.
+           You should use the header value provided here, no matter what session data you have in the session database
+           of the webservice you want to monitor.
+        -->
+        <HttpServiceHealthMonitor ServiceType="SessionPreviewService" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="PREVIEW_SERVICE_MONITORING_URL" RequestData=""/>
+            <Header Name="X-Preview-Session-Token"
+                    Value="wLf0YWRGI2M77y05imY5CXNAt+KTdmr4wU0IgOCyGsO0AULKJmANQPJOZ4alxggV"/>
+            <Authorization Scheme="OAuth2" Endpoint="TOKEN_SERVICE_CAPABILITY_URL" ClientId="registration"
+                           ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+            <Response SuccessPattern="ws/preview.svc"/>
+        </HttpServiceHealthMonitor>
+
+
+        <!--
+            Example configuration for monitoring the Deployer Service
+            Note that the Authorization tag should be commented out if no OAuth2 authorization is used.
+        -->
+        <HttpServiceHealthMonitor ServiceType="DeployerService" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="DEPLOYER_SERVICE_MONITORING_URL" RequestData=""/>
+            <Authorization Scheme="OAuth2" Endpoint="TOKEN_SERVICE_CAPABILITY_URL" ClientId="registration"
+                           ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+            <Response SuccessPattern="v2"/>
+        </HttpServiceHealthMonitor>
+
+
+        <!--
+           Example configuration for monitoring the UGC Community Service
+           Note that the Authorization tag should be commented out if no OAuth2 authorization is used.
+        -->
+        <HttpServiceHealthMonitor ServiceType="UGCCommunityService" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="COMMUNITY_SERVICE_MONITORING_URL" RequestData=""/>
+            <Authorization Scheme="OAuth2" Endpoint="TOKEN_SERVICE_CAPABILITY_URL" ClientId="registration"
+                           ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+            <Response SuccessPattern="community.svc"/>
+        </HttpServiceHealthMonitor>
+
+
+        <!--
+           Example configuration for monitoring the UGC Moderation Service
+           Note that the Authorization tag should be commented out if no OAuth2 authorization is used.
+        -->
+        <HttpServiceHealthMonitor ServiceType="UGCModerationService" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="MODERATION_SERVICE_MONITORING_URL" RequestData=""/>
+            <Authorization Scheme="OAuth2" Endpoint="TOKEN_SERVICE_CAPABILITY_URL" ClientId="registration"
+                           ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+            <Response SuccessPattern="moderation.svc"/>
+        </HttpServiceHealthMonitor>
+
+
+        <!--
+           Example configuration for monitoring the Context Engine Service
+           Note that the Authorization tag should be commented out if no OAuth2 authorization is used.
+        -->
+        <HttpServiceHealthMonitor ServiceType="ContextEngineService" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="CONTEXT_SERVICE_MONITORING_URL" RequestData=""/>
+            <Authorization Scheme="OAuth2" Endpoint="TOKEN_SERVICE_CAPABILITY_URL" ClientId="registration"
+                           ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+            <Response SuccessPattern="context.svc"/>
+        </HttpServiceHealthMonitor>
+
+
+        <!--
+           Example configuration for monitoring the Contextual Image Service
+        -->
+        <HttpServiceHealthMonitor ServiceType="ContextualImageService" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="CID_SERVICE_MONITORING_URL" RequestData=""/>
+            <Authorization Scheme="OAuth2" Endpoint="TOKEN_SERVICE_CAPABILITY_URL" ClientId="registration"
+                           ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="/>
+            <Response SuccessPattern="/cid"/>
+        </HttpServiceHealthMonitor>
+
+
+        <!--
+            Example of configuration for polling of Cache Channel Service,
+            either RMI or JMS based
+
+        <RmiServiceHealthMonitor ServiceType="CacheChannelService" PollInterval="10m" TimeoutInterval="30s">
+            <CacheChannelService Host="localhost" Port="1099" InstanceIdentifier=""/>
+        </RmiServiceHealthMonitor>
+        <JmsServiceHealthMonitor ServiceType="CacheChannelServicePoller" PollInterval="10m" TimeoutInterval="30s" Topic="MyTopic" TopicConnectionFactory="TopicConnectionFactory" Strategy="SyncJMS11">
+            <JndiContext>
+                <Property Name="java.naming.factory.initial" Value="org.apache.activemq.jndi.ActiveMQInitialContextFactory"/>
+                <Property Name="java.naming.provider.url" Value="tcp://localhost:61616"/>
+                <Property Name="topic.MyTopic" Value="example.MyTopic"/>
+                <Property Name="testProperty" Value="jms11"/>
+            </JndiContext>
+        </JmsServiceHealthMonitor>
+        -->
+
+        <!--
+        <WebDAVServiceHealthMonitor ServiceType="WebDAV" PollInterval="10m" TimeoutInterval="30s">
+            <Request URL="http://localhost/webdav/"/>
+            <Authentication Scheme="NTLM" Host="host" Domain="domain" Username="username" Password="password"/>
+        </WebDAVServiceHealthMonitor>
+        -->
+
+        <!--
+            The following configuration serves as an example for configuring the use of supplied
+            pages (in ASP, ASPX or JSP format) for monitoring API responses.
+            Exact URL and possibly authentication must be set correctly.
+        
+        <HttpServiceHealthMonitor ServiceType="Broker" ServiceInstance="local" PollInterval="5m" TimeoutInterval="30s">
+            <Request URL="http://localhost/monitor_broker.jsp"/>
+            <Response SuccessPattern="Monitoring TestPage"/>
+        </HttpServiceHealthMonitor>
+        <HttpServiceHealthMonitor ServiceType="Linking" ServiceInstance="local" PollInterval="5m" TimeoutInterval="30s">
+            <Request URL="http://localhost/monitor_linking.jsp"/>
+            <Response SuccessPattern="Monitoring TestPage"/>
+        </HttpServiceHealthMonitor>
+        -->
+
+    </ServiceHealthMonitors>
+
+
+    <!--
+        If the SNMP element is specified, the Monitoring Agent sends SNMP traps to an external
+        management application when the state of a monitored service changes.
+        Required attributes of the SNMP element:
+           Version          The SNMP version to use; allowed values are SNMPv1, SNMPv2c, and SNMPv3.
+           Host             The host name of the management application.
+           Port             The port on which the management application listens for traps.
+
+        SNMP version 1
+        ==============
+        The configuration must specify a community string as attribute of the Security element.
+
+        <SNMP Version="SNMPv1" Host="localhost" Port="162">
+            <Security Community="public"/>
+        </SNMP>
+
+        SNMP version 2c
+        ===============
+        The configuration must specify a community string as attribute of the Security element.
+
+        <SNMP Version="SNMPv2c" Host="localhost" Port="162">
+            <Security Community="public"/>
+        </SNMP>
+
+        SNMP version 3
+        ==============
+        The configuration must specify security settings.
+        Required attributes of Security element:
+           SecurityName     Security name in the user security model.
+        Optional attributes of Security element:
+           AuthProtocol     The authentication protocol; allowed values are MD5 and SHA.
+           AuthKey          Authentication passphrase (required if AuthProtocol is specified).
+           PrivProtocol     The privacy protocol; allowed values are DES, AES128, AES192, and AES256.
+           AuthKey          Privacy passphrase (required if PrivProtocol is specified).
+        The optional Engine element can be used to specify the name of the file for storing the number
+        of SNMP engine boots. If not specified the default name is MonitoringAgentBoots.xml.
+
+        <SNMP Version="SNMPv3" Host="localhost" Port="162">
+            <Security SecurityName="SDLWeb" AuthProtocol="MD5" AuthKey="abcdefgh"
+                PrivProtocol="DES" PrivKey="stuvwxyz"/>
+            <Engine EngineBootsFile="MonitoringAgentBoots.xml"/>
+        </SNMP>
+    -->
+
+
+    <!--
+        Configuration of the handler of the webservice status requests.
+        Required attribute(s):
+           ListenerPort          The port on which the agent listens for requests.
+        Optional attribute(s):
+           -
+    -->
+    <WebService ListenerPort="20132"/>
+
+</MonitoringAgentConfiguration>

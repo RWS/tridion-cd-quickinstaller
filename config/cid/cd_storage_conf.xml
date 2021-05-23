@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration Version="11.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="schemas/cd_storage_conf.xsd">
+
+    <ConfigRepository ServiceUri="DISCOVERY_SERVICE_URL"
+                      ConnectionTimeout="40000"
+                      CacheEnabled="true"
+                      CacheExpirationDuration="600"
+                      ServiceMonitorPollDuration="10"
+                      ClientId="registration"
+                      ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="
+                      TokenServiceUrl="TOKEN_SERVICE_CAPABILITY_URL">
+        <Roles>
+            <Role Name="ContextualImageDeliveryCapability" Url="CID_SERVICE_CAPABILITY_URL">
+            </Role>
+        </Roles>
+    </ConfigRepository>
+</Configuration>

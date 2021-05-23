@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration Version="11.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="schemas/cd_storage_conf.xsd">
+    <!--Optional:-->
+    <!--
+        Default Namespace Configuration
+        The parameter to determine the default namespace
+        'tcm' - Tridion Sites
+    -->
+    <Namespace default="NAMESPACE_PREFIX"/>
+
+    <Global>
+        <Storages>
+            <StorageBindings>
+                <Bundle src="preview_dao_bundle.xml"/>
+            </StorageBindings>
+
+            <Wrappers>
+                <Wrapper Name="SessionWrapper">
+                    <Storage Type="persistence" Id="sessiondb" dialect="MSSQL"
+                             Class="com.tridion.storage.persistence.JPADAOFactory">
+                        <Pool Type="jdbc" Size="15" MonitorInterval="60" IdleTimeout="120" CheckoutTimeout="120"
+                              AcquireRetryAttempts="1"/>
+                        <DataSource Class="com.microsoft.sqlserver.jdbc.SQLServerDataSource">
+                            <Property Name="serverName" Value="PREVIEW_DEFAULT_SERVER_NAME"/>
+                            <Property Name="portNumber" Value="PREVIEW_DEFAULT_PORT_NUMBER"/>
+                            <Property Name="databaseName" Value="PREVIEW_DEFAULT_DATABASE_NAME"/>
+                            <Property Name="user" Value="PREVIEW_DEFAULT_USER"/>
+                            <Property Name="password" Value="PREVIEW_DEFAULT_PASSWORD"/>
+                        </DataSource>
+                    </Storage>
+                </Wrapper>
+            </Wrappers>
+
+            <Storage Type="persistence" Id="defaultdb" dialect="MSSQL"
+                     Class="com.tridion.storage.persistence.JPADAOFactory">
+                <Pool Type="jdbc" Size="15" MonitorInterval="60" IdleTimeout="120" CheckoutTimeout="120"
+                      AcquireRetryAttempts="1"/>
+                <DataSource Class="com.microsoft.sqlserver.jdbc.SQLServerDataSource">
+                    <Property Name="serverName" Value="CONTENT_DEFAULT_SERVER_NAME"/>
+                    <Property Name="portNumber" Value="CONTENT_DEFAULT_PORT_NUMBER"/>
+                    <Property Name="databaseName" Value="CONTENT_DEFAULT_DATABASE_NAME"/>
+                    <Property Name="user" Value="CONTENT_DEFAULT_USER"/>
+                    <Property Name="password" Value="CONTENT_DEFAULT_PASSWORD"/>
+                </DataSource>
+            </Storage>
+        </Storages>
+    </Global>
+
+    <ItemTypes defaultStorageId="defaultdb" cached="false"/>
+
+    <ConfigRepository ServiceUri="DISCOVERY_SERVICE_URL"
+                      ConnectionTimeout="40000"
+                      CacheEnabled="true"
+                      CacheExpirationDuration="600"
+                      ServiceMonitorPollDuration="10"
+                      ClientId="registration"
+                      ClientSecret="encrypted:HzfQh9wYwAKShDxCm4DnnBnysAz9PtbDMFXMbPszSVY="
+                      TokenServiceUrl="TOKEN_SERVICE_CAPABILITY_URL">
+        <Roles>
+            <Role Name="PreviewWebServiceCapability" Url="PREVIEW_SERVICE_CAPABILITY_URL"/>
+        </Roles>
+    </ConfigRepository>
+</Configuration>
